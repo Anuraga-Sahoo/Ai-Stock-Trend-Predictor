@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Index Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .chart-container {
+            height: 600px;
+            margin: 20px 0;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="mb-4">Stock Index Analysis</h2>
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <form id="dataForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="indexSelect" class="form-label">Select Index:</label>
+                                        <select class="form-select" id="indexSelect">
+                                            <option value="NSE:NIFTY50-INDEX">NIFTY 50</option>
+                                            <option value="NSE:NIFTYBANK-INDEX">NIFTY Bank</option>
+                                            <option value="NSE:SENSEX-INDEX">SENSEX</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="timeframeSelect" class="form-label">Select Timeframe:</label>
+                                        <select class="form-select" id="timeframeSelect">
+                                            <option value="7">7 Days</option>
+                                            <option value="15">15 Days</option>
+                                            <option value="30">30 Days</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Get Data</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="loader" id="loader"></div>
+        <div id="errorAlert" class="alert alert-danger d-none"></div>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="stockChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let chartInstance = null;
+
+        document.getElementById('dataForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const loader = document.getElementById('loader');
+            const errorAlert = document.getElementById('errorAlert');
+            
+            loader.style.display = 'block';
+            errorAlert.classList.add('d-none');
+
+            try {
+                const symbol = document.getElementById('indexSelect').value;
+                const timeframe = document.getElementById('timeframeSelect').value;
+                
+                const response = await fetch(
+                    `http://127.0.0.1:5000/historical/indices?symbol=${symbol}&days=${timeframe}`
+                );
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                if (!data.data || data.data.length === 0) throw new Error('No data available');
+
+                processAndDisplayData(data.data);
+            } catch (error) {
+                errorAlert.textContent = `Error: ${error.message}`;
+                errorAlert.classList.remove('d-none');
+            } finally {
+                loader.style.display = 'none';
+            }
+        });
+
+        function processAndDisplayData(rawData) {
+            const processedData = rawData.map(item => ({
+                date: new Date(item.TIMESTAMP).toLocaleDateString(),
+                close: parseFloat(item.CLOSE),
+                open: parseFloat(item.OPEN),
+                high: parseFloat(item.HIGH),
+                low: parseFloat(item.LOW)
+            }));
+
+            updateChart(processedData);
+        }
+
+        function updateChart(data) {
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.date),
+                    datasets: [{
+                        label: 'Closing Price',
+                        data: data.map(d => d.close),
+                        borderColor: '#4e73df',
+                        backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                        pointRadius: 3,
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Price (INR)'
+                            },
+                            grid: {
+                                color: '#e9ecef'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
