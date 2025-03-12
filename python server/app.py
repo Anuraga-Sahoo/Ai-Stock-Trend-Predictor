@@ -606,7 +606,7 @@ def predict(symbol):
         train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
         
         model.train()
-        for epoch in range(50):
+        for epoch in range(100):
             for batch_X, batch_y in train_loader:
                 optimizer.zero_grad()
                 output = model(batch_X)
