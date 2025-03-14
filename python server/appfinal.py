@@ -506,9 +506,9 @@ def get_data_with_fallbacks(symbol, period='1y', max_retries=3):
             df = fetch_local_historical(fyers_symbol, days=365, data_type="indices")
         else:
             # Handle quotes/stocks
-            # fyers_symbol = Q_INDICES[symbol]['fyers']
+            fyers_symbol = Q_INDICES[symbol]['fyers']
 
-            df = fetch_local_historical(f"NSE:{symbol}-EQ", days=365, data_type="quotes")
+            df = fetch_local_historical(fyers_symbol, days=365, data_type="quotes")
             
         features = prepare_features(df)
         return features, df['Close'].values
@@ -581,7 +581,7 @@ def index():
 @app.route('/stocks')
 def stocks():
     try:
-        return render_template('stockAnalyzerWithInput.html')
+        return render_template('stock.html')
     except Exception as e:
         logging.error(f"Error rendering index: {str(e)}")
         return jsonify({'error':'Internal server error'}), 500 
@@ -658,7 +658,7 @@ def predict(symbol):
             train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
         
             model.train()
-            for epoch in range(5):
+            for epoch in range(50):
                 for batch_X, batch_y in train_loader:
                     optimizer.zero_grad()
                     output = model(batch_X)
