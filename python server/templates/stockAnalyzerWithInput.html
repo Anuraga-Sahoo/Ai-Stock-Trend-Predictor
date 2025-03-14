@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Market Stocks Prediction | AI-Powered Analysis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>StockPredict AI</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="">Index Analyzer Pro</a>
+                <a href="#" class="active">Dashboard</a>
+                <a href="#">Documentation</a>
+                <a href="#">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <div class="sidebar">
+            <div class="control-panel">
+                <h3><i class="fas fa-sliders-h"></i> Controls</h3>
+                <div class="control-group">
+                    <label for="indexSelect">Select Tickers</label>
+                    <select id="indexSelect" class="custom-select">
+                        <option value="">Choose an Ticker...</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="predictionDays">Prediction Timeframe</label>
+                    <select id="predictionDays" class="custom-select">
+                        <option value="7">7 Days</option>
+                        <option value="15">15 Days</option>
+                        <option value="30">30 Days</option>
+                    </select>
+                </div>
+                <button onclick="getPrediction()" class="primary-button">
+                    <i class="fas fa-magic"></i> Generate Prediction
+                </button>
+            </div>
+
+            <div class="metrics-panel" id="metrics">
+                <h3><i class="fas fa-chart-pie"></i> Model Metrics</h3>
+                <div class="metric-cards">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>Accuracy</h4>
+                            <div class="metric-value" id="accuracyMetric">-</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>MAPE</h4>
+                            <div class="metric-value" id="mapeMetric">-</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-square-root-alt"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>R² Score</h4>
+                            <div class="metric-value" id="r2Metric">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="content-header">
+                <h1>Market Stock Predictions</h1>
+                <p>AI-powered predictions using BiLSTM and Attention mechanism</p>
+            </div>
+
+            <div class="chart-section">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-area"></i> Price Prediction Analysis</h3>
+                        <div class="chart-actions">
+                            <button class="icon-button" onclick="toggleFullscreen()">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading-overlay" id="loading">
+                <div class="loader">
+                    <div class="loader-content">
+                        <i class="fas fa-cog fa-spin"></i>
+                        <p>Training model and generating predictions...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="error-message" id="error"></div>
+
+            <div class="predictions-section">
+                <div class="table-card" id="predictionsTable">
+                    <div class="table-header">
+                        <h3><i class="fas fa-table"></i> Detailed Predictions</h3>
+                        <div class="table-actions">
+                            <button class="icon-button" onclick="exportToCSV()">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Date</th>
+                                    <th>Predicted Value</th>
+                                    <th>Change %</th>
+                                    <th>Confidence</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody id="predictionsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/stockAnalyzer.js') }}"></script>
+</body>
+</html>

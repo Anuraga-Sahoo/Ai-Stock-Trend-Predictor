@@ -54,6 +54,15 @@ INDICES = {
     },
 }
 
+Q_INDICES ={
+    'ITC':{
+        'fyers':'NSE:ITC-EQ'
+        },
+    'SBIN':{
+        'fyers':'NSE:SBIN-EQ'
+    }
+}
+
 #######################################################################################################################
 #Class: AttentionLayer
 #Input: nn.Module
@@ -394,6 +403,11 @@ def fetch_local_historical(symbol, days=365, data_type="indices"):
     try:
         endpoint = f"{LOCAL_API_BASE}/get-index-history" if data_type == "indices" \
             else f"{LOCAL_API_BASE}/fetch-historical"
+
+        # if data_type == "indices":
+        #     endpoint = f"{NODEJS_SERVER}/get-index-history"
+        # else:
+        #     endpoint = f"{NODEJS_SERVER}/fetch-historical"
         
         params = {
             'symbol': symbol,
@@ -465,31 +479,52 @@ def get_data_with_fallbacks(symbol, period='1y', max_retries=3):
     errors = []
     
     # Validate symbol first
-    if symbol not in INDICES:
-        raise ValueError(f"Invalid symbol: {symbol}")
+    # if symbol not in INDICES:
+    #     raise ValueError(f"Invalid symbol: {symbol}")
     
     # Try Fyers API first
     try:
-        symbol = INDICES[symbol]['fyers']
-        df = fetch_local_historical(symbol, days = 365, data_type="indices")
+        
+    #     isymbol = INDICES[symbol]['fyers']
+    #     # if symbol == isymbol:
+    #     df = fetch_local_historical(isymbol, days = 365, data_type="indices")
+    #     features = prepare_features(df)
+    #     return features, df['Close'].values
+    #     # else:
+    #     #     symbol = Q_INDICES[symbol]['fyers']
+    #     #     df = fetch_local_historical(symbol, days = 365, data_type="quotes")
+    #     #     features = prepare_features(df)
+    #     #     return features, df['Close'].values
+    # except Exception as e:
+    #     errors.append(f"Fyers error: {str(e)}")
+    #     logging.warning(f"Fyers failed: {str(e)}")
+    # time.sleep(1)
+      # Determine if it's an index or quote
+        if symbol in INDICES:
+            # Handle indices
+            fyers_symbol = INDICES[symbol]['fyers']
+            df = fetch_local_historical(fyers_symbol, days=365, data_type="indices")
+        else:
+            # Handle quotes/stocks
+            fyers_symbol = Q_INDICES[symbol]['fyers']
+
+            df = fetch_local_historical(fyers_symbol, days=365, data_type="quotes")
+            
         features = prepare_features(df)
         return features, df['Close'].values
+        
     except Exception as e:
-        errors.append(f"Fyers error: {str(e)}")
-        logging.warning(f"Fyers failed: {str(e)}")
+        errors.append(f"Data fetch error: {str(e)}")
+        logging.error(f"Failed to fetch data for {symbol}: {str(e)}")
     time.sleep(1)
+
     
    
    
 
     
 
-    # # Try yfinance as last resort
-    # try:
-    #     return get_stock_data_yf(symbol, period, max_retries)
-    # except Exception as e:
-    #     errors.append(f"YFinance error: {str(e)}")
-    #     logging.warning(f"YFinance failed for {symbol}: {str(e)}")
+   
     
     error_msg = f"All data sources failed for {symbol}. Errors: {'; '.join(errors)}"
     logging.error(error_msg)
@@ -543,7 +578,13 @@ def index():
         logging.error(f"Error rendering index: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
     
-
+@app.route('/stocks')
+def stocks():
+    try:
+        return render_template('stock.html')
+    except Exception as e:
+        logging.error(f"Error rendering index: {str(e)}")
+        return jsonify({'error':'Internal server error'}), 500 
 #######################################################################################################################
 #Function: get_indices
 #Input: None
@@ -564,6 +605,19 @@ def get_indices():
         logging.error(f"Error in /api/indices: {str(e)}")  # Debug log
         return jsonify({'error': 'Internal server error'}), 500
 
+
+@app.route('/api/qindices')
+def get_qindices():
+    try:
+        indices = list(Q_INDICES.keys())
+        print(f"API call to /api/q_indices - Returning: {indices}")  # Debug print
+        logging.info(f"API call to /api/q_indices - Returning: {indices}")  # Debug log
+        return jsonify(indices)
+    except Exception as e:
+        print(f"Error in /api/q_indices: {str(e)}")  # Debug print
+        logging.error(f"Error in /api/q_indices: {str(e)}")  # Debug log
+        return jsonify({'error': 'Internal server error'}), 500
+
 #######################################################################################################################
 #Function: predict
 #Input: symbol
@@ -576,62 +630,124 @@ def get_indices():
 def predict(symbol):
     try:
         if symbol not in INDICES:
-            return jsonify({'error': f'Invalid index symbol: {symbol}'}), 400
+            prediction_days = int(request.args.get('days', 7))
+            if prediction_days not in [7, 15, 30]:
+                prediction_days = 7
+        
+            logging.info(f"Fetching data for {symbol} with {prediction_days} days prediction")
+        
+            try:
+                features, close_prices = get_data_with_fallbacks(symbol)
+            except DataFetchError as e:
+                logging.error(f"Data fetch error for {symbol}: {str(e)}")
+                return jsonify({'error': str(e)}), 503
+            except Exception as e:
+                logging.error(f"Unexpected error fetching data for {symbol}: {str(e)}")
+                return jsonify({'error': f'Error fetching data: {str(e)}'}), 500
             
-        prediction_days = int(request.args.get('days', 7))
-        if prediction_days not in [7, 15, 30]:
-            prediction_days = 7
+            if len(features) < 30 + prediction_days:
+                return jsonify({'error': 'Insufficient data points'}), 400
         
-        logging.info(f"Fetching data for {symbol} with {prediction_days} days prediction")
+            X_train, X_val, y_train, y_val, scaler = prepare_data(features, prediction_days=prediction_days)
         
-        try:
-            features, close_prices = get_data_with_fallbacks(symbol)
-        except DataFetchError as e:
-            logging.error(f"Data fetch error for {symbol}: {str(e)}")
-            return jsonify({'error': str(e)}), 503
-        except Exception as e:
-            logging.error(f"Unexpected error fetching data for {symbol}: {str(e)}")
-            return jsonify({'error': f'Error fetching data: {str(e)}'}), 500
-            
-        if len(features) < 30 + prediction_days:
-            return jsonify({'error': 'Insufficient data points'}), 400
+            model = EnhancedStockBiLSTM(input_size=features.shape[1], output_size=prediction_days)
+            criterion = nn.MSELoss()
+            optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         
-        X_train, X_val, y_train, y_val, scaler = prepare_data(features, prediction_days=prediction_days)
+            train_dataset = StockDataset(X_train, y_train)
+            train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
         
-        model = EnhancedStockBiLSTM(input_size=features.shape[1], output_size=prediction_days)
-        criterion = nn.MSELoss()
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+            model.train()
+            for epoch in range(50):
+                for batch_X, batch_y in train_loader:
+                    optimizer.zero_grad()
+                    output = model(batch_X)
+                    loss = criterion(output, batch_y)
+                    loss.backward()
+                    optimizer.step()
         
-        train_dataset = StockDataset(X_train, y_train)
-        train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+            metrics = calculate_metrics(model, X_val, y_val, scaler)
         
-        model.train()
-        for epoch in range(100):
-            for batch_X, batch_y in train_loader:
-                optimizer.zero_grad()
-                output = model(batch_X)
-                loss = criterion(output, batch_y)
-                loss.backward()
-                optimizer.step()
+            last_sequence = features[-30:]
+            X = torch.FloatTensor(scaler.transform(last_sequence)).unsqueeze(0)
         
-        metrics = calculate_metrics(model, X_val, y_val, scaler)
+            model.eval()
+            with torch.no_grad():
+                scaled_predictions = model(X)[0].numpy()
         
-        last_sequence = features[-30:]
-        X = torch.FloatTensor(scaler.transform(last_sequence)).unsqueeze(0)
+            pred_reshaped = np.zeros((len(scaled_predictions), scaler.n_features_in_))
+            pred_reshaped[:, 0] = scaled_predictions
+            predictions = scaler.inverse_transform(pred_reshaped)[:, 0]
         
-        model.eval()
-        with torch.no_grad():
-            scaled_predictions = model(X)[0].numpy()
-        
-        pred_reshaped = np.zeros((len(scaled_predictions), scaler.n_features_in_))
-        pred_reshaped[:, 0] = scaled_predictions
-        predictions = scaler.inverse_transform(pred_reshaped)[:, 0]
-        
-        historical = close_prices[-30:].tolist()
-        dates = [(datetime.now() + timedelta(days=i)).strftime('%Y-%m-%d') 
+            historical = close_prices[-30:].tolist()
+            dates = [(datetime.now() + timedelta(days=i)).strftime('%Y-%m-%d') 
                 for i in range(-29, prediction_days + 1)]
         
-        return jsonify({
+            return jsonify({
+                'dates': dates,
+                'values': historical + predictions.tolist(),
+                'predictions': predictions.tolist(),
+                'lastClose': historical[-1],
+                'metrics': metrics
+            })
+
+        # if symbol not in Q_INDICES:
+        #     return jsonify({'error': f'Invalid quote symbol: {symbol}'}), 400
+        else: 
+            prediction_days = int(request.args.get('days', 7))
+            if prediction_days not in [7, 15, 30]:
+                prediction_days = 7
+        
+            logging.info(f"Fetching data for {symbol} with {prediction_days} days prediction")
+        
+            try:
+                features, close_prices = get_data_with_fallbacks(symbol)
+            except DataFetchError as e:
+                logging.error(f"Data fetch error for {symbol}: {str(e)}")
+                return jsonify({'error': str(e)}), 503
+            except Exception as e:
+                logging.error(f"Unexpected error fetching data for {symbol}: {str(e)}")
+                return jsonify({'error': f'Error fetching data: {str(e)}'}), 500
+            
+            if len(features) < 30 + prediction_days:
+                return jsonify({'error': 'Insufficient data points'}), 400
+        
+            X_train, X_val, y_train, y_val, scaler = prepare_data(features, prediction_days=prediction_days)
+        
+            model = EnhancedStockBiLSTM(input_size=features.shape[1], output_size=prediction_days)
+            criterion = nn.MSELoss()
+            optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+        
+            train_dataset = StockDataset(X_train, y_train)
+            train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+        
+            model.train()
+            for epoch in range(1):
+                for batch_X, batch_y in train_loader:
+                    optimizer.zero_grad()
+                    output = model(batch_X)
+                    loss = criterion(output, batch_y)
+                    loss.backward()
+                    optimizer.step()
+        
+            metrics = calculate_metrics(model, X_val, y_val, scaler)
+        
+            last_sequence = features[-30:]
+            X = torch.FloatTensor(scaler.transform(last_sequence)).unsqueeze(0)
+        
+            model.eval()
+            with torch.no_grad():
+                scaled_predictions = model(X)[0].numpy()
+        
+            pred_reshaped = np.zeros((len(scaled_predictions), scaler.n_features_in_))
+            pred_reshaped[:, 0] = scaled_predictions
+            predictions = scaler.inverse_transform(pred_reshaped)[:, 0]
+        
+            historical = close_prices[-30:].tolist()
+            dates = [(datetime.now() + timedelta(days=i)).strftime('%Y-%m-%d') 
+                for i in range(-29, prediction_days + 1)]
+        
+            return jsonify({
                 'dates': dates,
                 'values': historical + predictions.tolist(),
                 'predictions': predictions.tolist(),
