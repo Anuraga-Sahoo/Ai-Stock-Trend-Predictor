@@ -40,7 +40,7 @@ INDICES = {
         'nse': 'NIFTY 50',
         'fyers': 'NSE:NIFTY50-INDEX'
     },
-    'SENSEX': {
+    'BSE': {
         'yf': '^BSESN',
         'ns': 'SENSEX',
         'nse': 'SENSEX',
@@ -52,6 +52,84 @@ INDICES = {
         'nse': 'NIFTY BANK',
         'fyers': 'NSE:NIFTYBANK-INDEX'
     },
+    'NIFTYAUTO': {
+        'yf': 'NIFTY-AUTO.NS',
+        'ns': 'NIFTY AUTO',
+        'nse': 'NIFTY AUTO',
+        'fyers': 'NSE:NIFTYAUTO-INDEX'
+    },
+    'NIFTYFINSERV': {
+        'yf': 'NIFTY-FIN-SERVICE.NS',
+        'ns': 'NIFTY FINANCIAL SERVICES',
+        'nse': 'NIFTY FINANCIAL SERVICES',
+        'fyers': 'NSE:NIFTYFINSERV-INDEX'
+    },
+    'NIFTYFMCG': {
+        'yf': 'NIFTY-FMCG.NS',
+        'ns': 'NIFTY FMCG',
+        'nse': 'NIFTY FMCG',
+        'fyers': 'NSE:NIFTYFMCG-INDEX'
+    },
+    'NIFTYIT': {
+        'yf': 'NIFTY-IT.NS',
+        'ns': 'NIFTY IT',
+        'nse': 'NIFTY IT',
+        'fyers': 'NSE:NIFTYIT-INDEX'
+
+    },
+    'NIFTYMETAL': {
+        'yf': 'NIFTY-METAL.NS',
+        'ns': 'NIFTY METAL',
+        'nse': 'NIFTY METAL',
+        'fyers': 'NSE:NIFTYMETAL-INDEX'
+
+    },
+    'NIFTYPHARMA': {
+        'yf': 'NIFTY-PHARMA.NS',
+        'ns': 'NIFTY PHARMA',
+        'nse': 'NIFTY PHARMA',
+        'fyers': 'NSE:NIFTYPHARMA-INDEX'
+
+    },
+    # 'NIFTYFINSERVICE25/50':{
+    #     'fyers': 'NSE:NIFTYFINSERVICE2550-INDEX'
+    # },
+    'NIFTYMEDIA':{
+        'fyers': 'NSE:NIFTYMEDIA-INDEX'
+    },
+    'NIFTYPSUBANK':{
+        'fyers': 'NSE:NIFTYPSUBANK-INDEX'
+        },
+    'NIFTYPRIVATEBANK':{
+        'fyers': 'NSE:NIFTYPRIVATEBANK-INDEX'
+    },
+    'NIFTYREALTY':{
+        'fyers': 'NSE:NIFTYREALTY-INDEX'
+    },
+    'NIFTY500':{
+        'fyers': 'NSE:NIFTY500-INDEX'
+    },
+    'NIFTYHEALTHCAREINDEX':{
+        'fyers': 'NSE:NIFTYHEALTHCARE-INDEX'
+    },
+    # 'NIFTYCONSUMERDURABLES':{
+    #     'fyers': 'NSE:NIFTYCONSUMERDURABLES-INDEX'
+    # },
+    'NIFTYOILANDGAS':{
+        'fyers': 'NSE:NIFTYOILANDGAS-INDEX'
+    },
+    'NIFTYMIDSMALLHEALTHCARE':{
+        'fyers': 'NSE:NIFTYMIDSMALLHEALTHCARE-INDEX'
+    },
+    # 'NIFTYFINANCIALSERVICESEX-BANK':{
+    #     'fyers': 'NSE:NIFTYFINANCIALSERVICESEX-BANK-INDEX'
+    # },
+    # 'NIFTYMIDSMALLFINANCIALSERVICES':{
+    #     'fyers': 'NSE:NIFTYMIDSMALLFINANCIALSERVICES-INDEX'
+    # },
+    # 'NIFTYMIDSMALLIT&TELICOM':{
+    #     'fyers': 'NSE:NIFTYMIDSMALLIT&TELICOM-INDEX'
+    # },
 }
 
 Q_INDICES ={

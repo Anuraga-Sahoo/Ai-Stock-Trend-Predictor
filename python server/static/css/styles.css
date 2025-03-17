@@ -5,9 +5,9 @@
     --success-color: #22c55e;
     --danger-color: #ef4444;
     --warning-color: #f59e0b;
-    --background-color: #f1f5f9;
-    --card-background: #ffffff;
-    --text-primary: #1e293b;
+    --background-color: #252525;
+    --card-background: #000000;
+    --text-primary: #f0f0f0;
     --text-secondary: #64748b;
     --border-color: #e2e8f0;
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -299,7 +299,7 @@ tr:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(0, 0, 0, 0.926);
     z-index: 1000;
 }
 
@@ -316,6 +316,7 @@ tr:hover {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    color: rgb(255, 255, 255);
 }
 
 .loader i {

@@ -129,12 +129,86 @@ async function getPrediction() {
 }
 
 // Update chart with new data
+// function updateChart(data) {
+//     if (chartInstance) {
+//         chartInstance.destroy();
+//     }
+    
+//     const ctx = chart.getContext('2d');
+    
+//     chartInstance = new Chart(ctx, {
+//         type: 'line',
+//         data: {
+//             labels: data.dates,
+//             datasets: [
+//                 {
+//                     label: 'Historical',
+//                     data: data.values.slice(0, -data.predictions.length),
+//                     borderColor: '#226fd4',
+//                     backgroundColor: 'rgba(47, 107, 236, 0.1)',
+//                     fill: true
+//                 },
+//                 {
+//                     label: 'Predictions',
+//                     data: [...Array(data.values.length - data.predictions.length).fill(null), ...data.predictions],
+//                     borderColor: '#dc2626',
+//                     borderDash: [5, 5],
+                    
+//                 }
+//             ]
+//         },
+//         options: {
+//             responsive: true,
+//             maintainAspectRatio: false,
+//             color_discrete_sequence:['blue'],
+//             interaction: {
+//                 intersect: false,
+//                 mode: 'index'
+//             },
+//             plugins: {
+//                 legend: {
+//                     position: 'top'
+//                 },
+//                 tooltip: {
+//                     enabled: true
+//                 }
+//             },
+//             scales: {
+//                 x:{
+//                     ticks: {
+//                         color: '#226fd4', // Hex color
+//                         font: {
+//                             size: 12,    // Font size
+//                             family: 'Arial', // Font family
+//                             weight: 'bold' // Font weight
+//                         }
+//                     },
+//                 },
+//                 y: {
+//                     ticks: {
+//                         gridcolor: '#f5f7fa',
+//                         color: '#226fd4', // Hex color
+//                         font: {
+//                             size: 12,    // Font size
+//                             family: 'Arial', // Font family
+//                             weight: 'bold' // Font weight
+//                         }
+//                     },
+//                     beginAtZero: false
+//                 }
+//             }
+            
+//         }
+//     });
+      
+// }
 function updateChart(data) {
     if (chartInstance) {
         chartInstance.destroy();
     }
     
     const ctx = chart.getContext('2d');
+    
     chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -143,15 +217,15 @@ function updateChart(data) {
                 {
                     label: 'Historical',
                     data: data.values.slice(0, -data.predictions.length),
-                    borderColor: '#2563eb',
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderColor: '#226fd4',
+                    backgroundColor: 'rgba(47, 107, 236, 0.1)',
                     fill: true
                 },
                 {
                     label: 'Predictions',
                     data: [...Array(data.values.length - data.predictions.length).fill(null), ...data.predictions],
                     borderColor: '#dc2626',
-                    borderDash: [5, 5]
+                    borderDash: [5, 5],
                 }
             ]
         },
@@ -171,7 +245,33 @@ function updateChart(data) {
                 }
             },
             scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)', // White grid lines for X-axis
+                        lineWidth: 1
+                    },
+                    ticks: {
+                        color: '#226fd4',
+                        font: {
+                            size: 12,
+                            family: 'Arial',
+                            weight: 'bold'
+                        }
+                    },
+                },
                 y: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)', // White grid lines for Y-axis
+                        lineWidth: 1
+                    },
+                    ticks: {
+                        color: '#226fd4',
+                        font: {
+                            size: 12,
+                            family: 'Arial',
+                            weight: 'bold'
+                        }
+                    },
                     beginAtZero: false
                 }
             }
@@ -247,6 +347,7 @@ function exportToCSV() {
     const a = document.createElement('a');
     a.href = url;
     a.download = 'predictions.csv';
+    // a.download = 'predictions.pdf';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
